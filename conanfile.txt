@@ -1,0 +1,6 @@
+[requires]
+catch2/2.13.9
+fmt/8.1.1
+
+[generators]
+cmake_find_package
