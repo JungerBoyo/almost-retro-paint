@@ -3,10 +3,6 @@ name: ci
 on:
   release:
     types: [published]
-  push:
-    tags:
-    branches:
-      - main
 
 env: 
   CONAN_SYSREQUIRES_MODE: enabled
