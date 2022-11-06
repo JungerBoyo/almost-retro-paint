@@ -1,1 +1,0 @@
-cmake -G $1 -DCMAKE_BUILD_TYPE=Release -S . -B ./build

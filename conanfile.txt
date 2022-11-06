@@ -1,5 +1,7 @@
 [requires]
-catch2/2.13.9
+ftxui/3.0.0
+cli11/2.2.0
+spdlog/1.10.0 
 fmt/8.1.1
 
 [generators]
