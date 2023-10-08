@@ -1,3 +1,3 @@
-configure_file("config.hpp.in" "${CMAKE_BINARY_DIR}/config/config.hpp" ESCAPE_QUOTES)
+configure_file("config.hpp.in" "${CMAKE_SOURCE_DIR}/src/appconfig.hpp" ESCAPE_QUOTES)
 
 

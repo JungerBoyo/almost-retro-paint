@@ -1,5 +1,10 @@
-build*/
+build-rel/
+build-dbg/
 .vscode/
 *.code-workspace
 format_code.bash
 .conanprofile
+lalal.json
+conanprofile.dbg.txt
+conanprofile.txt
+CMakeUserPresets.json

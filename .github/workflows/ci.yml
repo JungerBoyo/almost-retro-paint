@@ -3,67 +3,57 @@ name: ci
 on:
   release:
     types: [published]
-
-env: 
-  CONAN_SYSREQUIRES_MODE: enabled
-  CONAN_USER_HOME: "${{ github.workspace }}/conan-cache"
-  CONAN_USER_HOME_SHORT: "${{ github.workspace }}/conan-cache/short"
+  push:
+    tags:
+    branches:
+      - main
 
 jobs:
-  build-test: 
+  build:
     runs-on: ${{ matrix.os }}
-    strategy: 
+    strategy:
       fail-fast: false
-      matrix: # { win + [clang], unix + [clang], macos + [clang] }
-        os: 
-          - windows-2019
-          - ubuntu-20.04
-          - macos-11
-        compiler:
-          - llvm-13.0.0
-        generator:
-          - Ninja
+      matrix:
+        os:
+          - windows-2022
+          - ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: "Cache setup"
-        uses: actions/cache@v3
+      - name: Windows setup tools
+        if: matrix.os == 'windows-2022'
+        uses: crazy-max/ghaction-chocolatey@v2
         with:
-          path: |
-            ~/.cache/pip
-            ${{ env.CONAN_USER_HOME }}
-          key: ${{matrix.os}}-${{matrix.compiler}}-${{matrix.generator}}-${{hashFiles('./conanfile.txt')}}-${{hashFiles('**/CMakeLists.txt')}}
-          restore-keys: ${{matrix.os}}-${{matrix.compiler}}-${{matrix.generator}}-${{hashFiles('./conanfile.txt')}}
+          args: install cmake llvm ninja
 
-      - name: Setup cpp compiler and tools
-        uses: aminya/setup-cpp@v1
+      - name: Linux setup tools
+        if: matrix.os == 'ubuntu-22.04'
+        run: sudo apt-get install cmake pip
+
+      - name: Install conan package manager
+        run: pip install conan
+
+      - name: Install conan packages
+        uses: ./.github/actions/install_conan_packages
         with:
-          compiler: ${{ matrix.compiler }}
-          vcvarsall: ${{ contains(matrix.os, 'windows') }}
-          cmake: true
-          ninja: true
-          conan: true 
-          ccache: true
+          os: ${{ matrix.os }}
 
-      - name: Cleanup Conan system packages (they are not properly cached)
-        run: conan remove -f '*/system'
+      - name: CMake config
+        uses: ./.github/actions/cmake_config
+        with:
+          os: ${{ matrix.os }}
 
-      - name: configure project
-        run: |
-          cmake -S . -B ./build -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=MinSizeRel
-     
-      - name: build project
-        run: cmake --build ./build
-      
-      - name: cpack project
+      - name: CMake build
+        run: cmake --build build-rel
+
+      - name: CPack project
         if: startsWith(github.ref, 'refs/tags')
-        working-directory: ./build
-        run: cpack -C CPackConfig.cmake -G ZIP
+        working-directory: build-rel
+        run: cpack -G ZIP --config CPackConfig.cmake
 
-      - name: publish release
+      - name: Publish release
         if: startsWith(github.ref, 'refs/tags')
         uses: softprops/action-gh-release@v1
         with:
-          files: ./build/*.zip
-
+          files: build-rel/*.zip

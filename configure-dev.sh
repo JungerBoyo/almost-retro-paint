@@ -1,1 +1,0 @@
-cmake -G $1 -DCMAKE_BUILD_TYPE=Debug -DDEV_MODE=ON -S . -B ./build.dev
